@@ -130,7 +130,7 @@ function ini_sound() {
   camera.add(listener)
   sound = new THREE.Audio(listener)
   const audioLoader = new THREE.AudioLoader()
-  audioLoader.load("sounds/quack.mp3", function (buffer) {
+  audioLoader.load("./sounds/quack.mp3", function (buffer) {
     sound.setBuffer(buffer)
     // sound.setLoop(true)
     sound.setVolume(0.5)
@@ -143,7 +143,7 @@ function load_duck() {
   //TODO: Load duck model with promise
   loader = new GLTFLoader()
   loader.load(
-    "models/Rubber_Duck.glb",
+    "./models/Rubber_Duck.glb",
     function (gltf) {
       gltf.scene.scale.set(SCALE, SCALE, SCALE)
       duck = gltf.scene
@@ -241,7 +241,7 @@ function ini_water() {
     textureWidth: 512,
     textureHeight: 512,
     waterNormals: new THREE.TextureLoader().load(
-      "textures/waternormals.jpg",
+      "./textures/waternormals.jpg",
       function (texture) {
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping
       }
