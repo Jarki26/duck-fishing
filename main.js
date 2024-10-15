@@ -17,12 +17,50 @@ let loader
 
 const SCALE = 100
 const RATIO = SCALE / 100
+const LANG = "en-US"
+const recognition_list = ["quack", "duck", "work", "black", "crack"]
+
+let sp
+let lastSpeech = ""
+
+try {
+  ini_speech()
+} catch (error) {
+  console.error("Speech recognition not supported", error)
+}
 
 init()
 
+function ini_speech() {
+  let Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  sp = new Recognition()
+  sp.continuous = true
+  sp.lang = LANG
+  sp.onresult = (e) => {
+    const length = e?.results?.length - 1
+    const transcript = e?.results?.item(length)?.item(0)?.transcript
+    // console.log("debug", e?.results?.item(length))
+    console.log("transcript:", transcript)
+    lastSpeech = transcript
+  }
+  sp.onerror = console.error
+}
+
+export function speechStart() {
+  sp.start()
+  console.log("Speech started")
+}
+
+export function speechStop() {
+  sp.stop()
+  console.log("Speech stopped")
+}
+
+function speechClear() {
+  lastSpeech = ""
+}
+
 function init() {
-  console.log("SCALE", SCALE)
-  console.log("RATIO", RATIO)
   container = document.getElementById("container")
 
   //
@@ -54,8 +92,6 @@ function init() {
       new THREE.Vector3(0, 20 * RATIO, 0)
     )
   )
-  console.log("scene.position", scene.position)
-  //   console.log("fixed", scene.position.add(new THREE.Vector3(0, 50, 0)))
 
   sound = ini_sound()
 
@@ -122,7 +158,6 @@ function onPointerMove(event) {
   // (-1 to +1) for both components
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1
-  // console.log("pointer", pointer)
 }
 
 function ini_sound() {
@@ -268,7 +303,6 @@ function onWindowResize() {
 }
 
 function onClick() {
-  console.log("click")
   renderRay()
 }
 
@@ -284,11 +318,19 @@ function renderRay() {
 }
 
 function custom_sound_play() {
-  const detuneRnd = Math.floor(Math.random() * 100)
-  console.log("detuneRnd", detuneRnd)
-  sound.detune = detuneRnd
-  sound.setVolume(0.5)
+  const volumeRnd = Math.floor(Math.random() * 5) / 10
+  console.log("volumeRnd", volumeRnd)
+  // sound.detune = volumeRnd
+  sound.setVolume(0.5 + volumeRnd)
   sound.play()
+}
+
+function check_speech_quack() {
+  if (lastSpeech === "") return
+  if (recognition_list.some((word) => lastSpeech.includes(word))) {
+    custom_sound_play()
+  }
+  speechClear()
 }
 
 function animate() {
@@ -303,6 +345,7 @@ function render() {
   //   renderRay()
 
   water.material.uniforms["time"].value += 1.0 / 60.0
+  check_speech_quack()
 
   renderer.render(scene, camera)
 }

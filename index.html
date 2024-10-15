@@ -10,9 +10,15 @@
     </style>
   </head>
   <body>
-    <script type="module" src="./main.js"></script>
+    <script type="module">
+      import { speechStart, speechStop } from "./main.js"
+      window.speechStart = speechStart
+      window.speechStop = speechStop
+    </script>
     <div id="container"></div>
     <div id="info">
+      <button onclick="speechStart()">Escuchar</button>
+      <button onclick="speechStop()">Parar</button>
       <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
       - webgl ocean
     </div>
