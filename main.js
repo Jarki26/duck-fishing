@@ -14,11 +14,24 @@ let camera, raycaster, pointer, scene, renderer, sound
 let controls, water, sun, mesh, duck
 let objects = []
 let loader
+const parameters = {
+  hasStick: false,
+  elevation: 2,
+  azimuth: 180,
+}
 
 const SCALE = 100
 const RATIO = SCALE / 100
 const LANG = "en-US"
-const recognition_list = ["quack", "duck", "work", "black", "crack"]
+const recognition_list = [
+  "quack",
+  "duck",
+  "work",
+  "black",
+  "crack",
+  "walk",
+  "what",
+]
 
 let sp
 let lastSpeech = ""
@@ -109,7 +122,7 @@ function init() {
 
   // Skybox
 
-  var { parameters, sky, renderTarget, sceneEnv, pmremGenerator } = ini_skybox()
+  var { sky, renderTarget, sceneEnv, pmremGenerator } = ini_skybox()
 
   function updateSun() {
     const phi = THREE.MathUtils.degToRad(90 - parameters.elevation)
@@ -141,12 +154,9 @@ function init() {
   window.addEventListener("pointermove", onPointerMove)
   window.addEventListener("click", onClick)
 
-  stats = new Stats()
-  container.appendChild(stats.dom)
-
   // GUI
 
-  ini_gui(parameters, updateSun)
+  ini_gui(updateSun)
 
   //
 
@@ -183,8 +193,9 @@ function load_duck() {
       gltf.scene.scale.set(SCALE, SCALE, SCALE)
       duck = gltf.scene
       //   duck.position.x = 29 * RATIO
-      duck.rotation.y = Math.PI / 4
+      duck.rotation.y = Math.PI / 3
       scene.add(duck)
+      console.log("Duck loaded", duck)
     },
     undefined,
     function (error) {
@@ -205,25 +216,22 @@ function ini_skybox() {
   skyUniforms["mieCoefficient"].value = 0.005
   skyUniforms["mieDirectionalG"].value = 0.8
 
-  const parameters = {
-    elevation: 2,
-    azimuth: 180,
-  }
-
   const pmremGenerator = new THREE.PMREMGenerator(renderer)
   const sceneEnv = new THREE.Scene()
 
   let renderTarget
-  return { parameters, sky, renderTarget, sceneEnv, pmremGenerator }
+  return { sky, renderTarget, sceneEnv, pmremGenerator }
 }
 
-function ini_gui(parameters, updateSun) {
+function ini_gui(updateSun) {
   const gui = new GUI()
+
+  gui.add(parameters, "hasStick").onChange(toggleRod)
 
   const folderSky = gui.addFolder("Sky")
   folderSky.add(parameters, "elevation", 0, 90, 0.1).onChange(updateSun)
   folderSky.add(parameters, "azimuth", -180, 180, 0.1).onChange(updateSun)
-  folderSky.open()
+  folderSky.close()
 
   const waterUniforms = water.material.uniforms
 
@@ -232,7 +240,13 @@ function ini_gui(parameters, updateSun) {
     .add(waterUniforms.distortionScale, "value", 0, 8, 0.1)
     .name("distortionScale")
   folderWater.add(waterUniforms.size, "value", 0.1, 10, 0.1).name("size")
-  folderWater.open()
+  folderWater.close()
+
+  gui.close()
+
+  // Stats
+  // stats = new Stats()
+  // container.appendChild(stats.dom)
 }
 
 function ini_controls() {
@@ -264,7 +278,6 @@ function ini_mesh() {
   mesh.position.y = 15
   mesh.position.z = 60
   objects.push(mesh)
-  scene.add(mesh)
 
   return mesh
 }
@@ -327,7 +340,9 @@ function custom_sound_play() {
 
 function check_speech_quack() {
   if (lastSpeech === "") return
-  if (recognition_list.some((word) => lastSpeech.includes(word))) {
+  if (
+    recognition_list.some((word) => lastSpeech.toLowerCase().includes(word))
+  ) {
     custom_sound_play()
   }
   speechClear()
@@ -335,7 +350,7 @@ function check_speech_quack() {
 
 function animate() {
   render()
-  stats.update()
+  stats?.update()
 }
 
 function render() {
@@ -359,10 +374,27 @@ function mesh_animation(time) {
   }
 }
 
+function toggleRod() {
+  if (parameters?.hasStick) {
+    scene.add(mesh)
+  } else {
+    removeObjectFromScene(mesh)
+  }
+}
+
+// Función para eliminar un objeto de la escena
+function removeObjectFromScene(object) {
+  if (scene && object) {
+    scene.remove(object)
+    object.geometry.dispose()
+    object.material.dispose()
+  }
+}
+
 function duck_animation(time) {
   if (duck) {
-    duck.position.y = Math.sin(time) * 5 + 14 * RATIO
-    //   duck.rotation.x = time * 0.5
-    //   duck.rotation.z = time * 0.51
+    duck.position.y = Math.sin(time) * 4 + 15 * RATIO
+    duck.rotation.x = (Math.cos(time * 0.5) / 5) * RATIO
+    duck.rotation.z = (Math.sin(time * 0.4) / 5) * RATIO
   }
 }

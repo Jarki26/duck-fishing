@@ -15,12 +15,23 @@
       window.speechStart = speechStart
       window.speechStop = speechStop
     </script>
-    <div id="container"></div>
-    <div id="info">
+    <div
+      id="info"
+      style="
+        width: 50%;
+        position: absolute;
+        z-index: 10;
+        bottom: 0px;
+        background-color: burlywood;
+        border-radius: 5px;
+        padding: 3px;
+      "
+    >
       <button onclick="speechStart()">Escuchar</button>
       <button onclick="speechStop()">Parar</button>
       <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
       - webgl ocean
     </div>
+    <div id="container"></div>
   </body>
 </html>
